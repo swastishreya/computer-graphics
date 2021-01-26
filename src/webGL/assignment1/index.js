@@ -34,6 +34,22 @@ window.onload = () =>
 			{
 				primitives.push(new Rectangle(gl, clipCoordinates[0], clipCoordinates[1], new Float32Array([1.0, 0.0, 1.0]), true));
 			}
+		} else if (modeValue === 1)
+		{
+			if (primitives.length > 0) 
+			{
+				closest = primitives[0];
+				let minDist = Math.abs(clipCoordinates[0]-closest.centroidX) + Math.abs(clipCoordinates[1]-closest.centroidY);
+				primitives.forEach( primitive => {
+					let dist = Math.abs(clipCoordinates[0]-primitive.centroidX) + Math.abs(clipCoordinates[1]-primitive.centroidY);
+					if (dist < minDist)
+					{
+						minDist = dist;
+						closest = primitive;
+					}
+				})
+
+			}
 		}
 
 		
@@ -44,31 +60,87 @@ window.onload = () =>
 		switch (event.key)
 		{
 			case 'ArrowDown':
+				if (modeValue === 1)
+				{
+					if (closest !== null)
+					{
+						closest.centroidY -= 0.1;
+						closest.recomputeVertexAttributesData();
+					}
+				}
 				break;
 			case 'ArrowUp':
+				if (modeValue === 1)
+				{
+					if (closest !== null)
+					{
+						closest.centroidY += 0.1;
+						closest.recomputeVertexAttributesData();
+					}
+				}
 				break;
 			case 'ArrowLeft':
-				if (modeValue === 0)
+				if (modeValue === 1)
 				{
-					
+					if (closest !== null)
+					{
+						closest.centroidX -= 0.1;
+						closest.recomputeVertexAttributesData();
+					}
 				} else if (modeValue === 2)
 				{
-					let centroid = getCentroid();
+					let centroid = getBoundingBoxCentroid();
 					vec3.set(rotationAxis, centroid[0], centroid[1], 1);
 					rotationAngle -= 0.01;
 				}
 				break;
 			case 'ArrowRight':
-				if (modeValue === 0)
+				if (modeValue === 1)
 				{
-					
+					if (closest !== null)
+					{
+						closest.centroidX += 0.1;
+						closest.recomputeVertexAttributesData();
+					}
 				} else if (modeValue === 2)
 				{
-					let centroid = getCentroid();
+					let centroid = getBoundingBoxCentroid();
 					vec3.set(rotationAxis, centroid[0], centroid[1], 1);
 					rotationAngle += 0.01;
 				}
 				break;
+			case '+':
+				if (modeValue === 1)
+				{
+					if (closest !== null)
+					{
+						closest.width = closest.width*1.1;
+						closest.height = closest.height*1.1;
+						console.log(closest.width);
+						console.log(closest.height);
+						closest.recomputeVertexAttributesData();
+					}
+				}
+			case '-':
+				if (modeValue === 1)
+				{
+					if (closest !== null)
+					{
+						closest.width = closest.width*0.9;
+						closest.height = closest.height*0.9;
+						console.log(closest.width);
+						console.log(closest.height);
+						closest.recomputeVertexAttributesData();
+					}
+				}
+			case 'x':
+				if (modeValue === 1)
+				{
+					if (closest !== null)
+					{
+						closest.isDeleted = true;
+					}
+				}
 			case 'r':
 				shapeMode = 'r';
 				break;
@@ -77,6 +149,15 @@ window.onload = () =>
 				break;
 			case 'm':
 				modeValue = (modeValue + 1) % 3;
+				if (modeValue === 0)
+				{
+					let centroid = getBoundingBoxCentroid();
+					vec3.set(rotationAxis, centroid[0], centroid[1], 1);
+					rotationAngle = 0.0;	
+				} else if (modeValue === 2)
+				{
+					closest = null;
+				}
 				break;
 		}
 	},
@@ -85,7 +166,8 @@ window.onload = () =>
 }
 
 
-const primitives = [];
+var primitives = [];
+let closest = null;
 
 let rotationAngle = 0;
 let rotationAxis = vec3.create();
@@ -126,6 +208,26 @@ function getCentroid()
 	})
 
 	return [centroidX/count, centroidY/count]
+}
+
+function getBoundingBoxCentroid() 
+{
+	let minX = 1.0;
+	let maxX = -1.0;
+	let minY = 1.0;
+	let maxY = -1.0;
+
+	primitives.forEach( primitive => {
+		minX = Math.min(minX, primitive.centroidX - primitive.width/2);
+		maxX = Math.max(maxX, primitive.centroidX + primitive.width/2);
+		minY = Math.min(minY, primitive.centroidY - primitive.height/2);
+		maxY = Math.max(maxY, primitive.centroidY + primitive.height/2);
+	})
+
+	let centroidX = (minX + maxX)/2;
+	let centroidY = (minY + maxY)/2;
+
+	return [centroidX, centroidY]
 }
 
 animate();

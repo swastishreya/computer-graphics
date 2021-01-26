@@ -13,6 +13,7 @@ export default class Rectangle
 		this.width = width;
 		this.height = height;
 		this.color = color;
+		this.isDeleted = false;
 
 		if (isSquare){
             this.height = this.width;
@@ -56,6 +57,18 @@ export default class Rectangle
 		shader.setUniformMatrix4fv(uModelTransformMatrix, this.transform.getMVPMatrix());
 
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.vertexAttributesData.length / (2 * elementPerVertex));
+	}
+
+	recomputeVertexAttributesData()
+	{
+		this.vertexAttributesData = new Float32Array([
+			//  x , y,  z
+			this.centroidX + this.width/2, this.centroidY + this.height/2, 0.0, this.color[0], this.color[1], this.color[2],
+			this.centroidX + this.width/2, this.centroidY - this.height/2, 0.0, this.color[0], this.color[1], this.color[2],
+			this.centroidX - this.width/2, this.centroidY + this.height/2, 0.0, this.color[0], this.color[1], this.color[2],
+			this.centroidX - this.width/2, this.centroidY - this.height/2, 0.0, this.color[0], this.color[1], this.color[2],
+		]);
+		console.log("success!!!!!");
 	}
 
 };
