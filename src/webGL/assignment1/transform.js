@@ -2,18 +2,16 @@ import { vec3, mat4 } from 'https://cdn.skypack.dev/gl-matrix';
 
 export default class Transform
 {
-	constructor()
+	constructor(centroidX, centroidY)
 	{
-		this.translate = vec3.fromValues( 0, 0, 0);
+		this.translate = vec3.fromValues( centroidX, centroidY, 0);
+		this.moveOrigin = vec3.fromValues(-centroidX,-centroidY,0)
 		this.scale = vec3.fromValues( 1, 1, 1);
 		this.rotationAngle = 0;
-		this.rotationAxis = vec3.fromValues( 0, 0, 1);
+		this.rotationAxis = vec3.fromValues( centroidX, centroidY, 1);
 
 		this.modelTransformMatrix = mat4.create();
 		mat4.identity(this.modelTransformMatrix);
-
-		this.mvpMatrix = this.modelTransformMatrix;
-
 		this.updateMVPMatrix();
 	}
 
@@ -26,14 +24,16 @@ export default class Transform
 	updateMVPMatrix()
 	{
 		mat4.identity(this.modelTransformMatrix);
-		mat4.translate(this.modelTransformMatrix, this.modelTransformMatrix, this.translate);
 		mat4.rotate(this.modelTransformMatrix, this.modelTransformMatrix, this.rotationAngle, this.rotationAxis);
+		mat4.translate(this.modelTransformMatrix, this.modelTransformMatrix, this.translate);
 		mat4.scale(this.modelTransformMatrix, this.modelTransformMatrix, this.scale);
+		mat4.translate(this.modelTransformMatrix, this.modelTransformMatrix,this.moveOrigin);
 	}
 
 	setTranslate(translationVec)
 	{
-		this.translate = translationVec;
+		vec3.add(this.translate, translationVec, this.translate);
+		// this.translate = translationVec;
 	}
 
 	getTranslate()
@@ -43,7 +43,12 @@ export default class Transform
 
 	setScale(scalingVec)
 	{
-		this.scale = scalingVec;
+		console.log("Scale before:" + this.scale);
+		console.log("Translate before:" + this.translate);
+		vec3.add(this.scale, scalingVec, this.scale);
+		// this.scale = scalingVec;
+		console.log("Scale after:" + this.scale);
+		console.log("Translate after:" + this.translate);
 	}
 
 	getScale()
@@ -54,7 +59,8 @@ export default class Transform
 	setRotate(rotationAxis, rotationAngle)
 	{
 		this.rotationAngle = rotationAngle;
-		this.rotationAxis = rotationAxis;
+		vec3.add(this.rotationAxis, rotationAxis, this.rotationAxis);
+		// this.rotationAxis = rotationAxis;
 	}
 
 	getRotate()
