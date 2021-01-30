@@ -6,9 +6,7 @@ export default class Cirlce
 {
     constructor(gl, centroidX, centroidY, radius=0.125) 
     {
-        console.log("Helooo circle"); 
-		console.log(centroidX); 
-		console.log(centroidY); 
+        this.type = 'cirlce';
 
         this.centroidX = centroidX;
         this.centroidY = centroidY;
@@ -76,7 +74,6 @@ export default class Cirlce
     
     getTransformedCornerPositions() 
 	{
-		// Position of top left vertex
 		const currentVertex1 = vec4.fromValues(this.positionAttributesData[0]+this.radius,this.positionAttributesData[1],this.positionAttributesData[2],1);
 		const updatedVertex1 = vec4.create();
 		vec4.transformMat4(updatedVertex1, currentVertex1, this.transform.getMVPMatrix());

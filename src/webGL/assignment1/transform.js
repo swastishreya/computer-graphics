@@ -22,7 +22,6 @@ export default class Transform
 		return this.modelTransformMatrix;
 	}
 
-	// Keep in mind that modeling transformations are applied to objects in the opposite of the order in which they occur in the code
 	updateMVPMatrix()
 	{
 		mat4.identity(this.modelTransformMatrix);

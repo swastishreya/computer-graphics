@@ -6,9 +6,7 @@ export default class Rectangle
 {
 	constructor(gl, centroidX, centroidY, color, isSquare=false, width=0.25, height=0.5)
 	{
-		console.log("Helooo rectangle"); 
-		console.log(centroidX); 
-		console.log(centroidY); 
+		this.type = 'rectangle';
 	
 		this.centroidX = centroidX;
 		this.centroidY = centroidY;
@@ -76,7 +74,6 @@ export default class Rectangle
 
 	getTransformedCornerPositions() 
 	{
-		// Position of top right vertex
 		const currentVertex1 = vec4.fromValues(this.positionAttributesData[0],this.positionAttributesData[1],this.positionAttributesData[2],1);
 		const updatedVertex1 = vec4.create();
 		vec4.transformMat4(updatedVertex1, currentVertex1, this.transform.getMVPMatrix());

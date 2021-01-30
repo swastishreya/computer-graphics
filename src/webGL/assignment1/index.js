@@ -40,20 +40,10 @@ window.onload = () =>
 		{
 			if (primitives.length > 0) 
 			{
-				closest = primitives[0];
-				let minDist = Math.abs(clipCoordinates[0]-closest.centroidX) + Math.abs(clipCoordinates[1]-closest.centroidY);
-				primitives.forEach( primitive => {
-					let dist = Math.abs(clipCoordinates[0]-primitive.centroidX) + Math.abs(clipCoordinates[1]-primitive.centroidY);
-					if (dist < minDist)
-					{
-						minDist = dist;
-						closest = primitive;
-					}
-				})
+				closest = getClosestPrimitive(clipCoordinates[0], clipCoordinates[1]);
 
 			}
 		}
-
 		
 	});
 
@@ -204,6 +194,72 @@ function animate()
 	})
 
 	window.requestAnimationFrame(animate);
+}
+
+function getClosestPrimitive(mouseX, mouseY)
+{
+
+	let closestPrimitive = null;
+	let minDist = 2.0;
+
+	for (var i = primitives.length-1; i >= 0; i--)
+	{
+		let cornerVertexPositions = primitives[i].getTransformedCornerPositions();
+		let minX = Math.min(cornerVertexPositions[0], Math.min(cornerVertexPositions[2],Math.min(cornerVertexPositions[4], cornerVertexPositions[6])));
+		let maxX = Math.max(cornerVertexPositions[0], Math.max(cornerVertexPositions[2],Math.max(cornerVertexPositions[4], cornerVertexPositions[6])));
+		let minY = Math.min(cornerVertexPositions[1], Math.min(cornerVertexPositions[3],Math.min(cornerVertexPositions[5], cornerVertexPositions[7])));
+		let maxY = Math.max(cornerVertexPositions[1], Math.max(cornerVertexPositions[3],Math.max(cornerVertexPositions[5], cornerVertexPositions[7])));
+
+		
+		if (primitives[i].type === 'circle')
+		{
+			let x = (minX + maxX) / 2;
+			let y = (minY + maxY) / 2;
+			let dist = distance(mouseX, mouseY, x, y) - primitives[i].radius;
+			if (dist < minDist)
+			{
+				minDist = dist;
+				closestPrimitive = primitives[i];
+			}
+
+		} else {	
+			if ( mouseX >= minX && mouseX <= maxX && mouseY >= minY && mouseY <= maxY){
+				// Mouse click coordinates are inside the object
+				return primitives[i];
+			} else if (mouseX >= minX && mouseX <= maxX) {
+				// Mouse click coordinates are outside the object but near a horizontal edge
+				let dist = Math.min(Math.abs(mouseY-minY), Math.abs(mouseY-maxY));
+				if (dist < minDist)
+				{
+					minDist = dist;
+					closestPrimitive = primitives[i];
+				}
+			} else if (mouseY >= minY && mouseY <= maxY) {
+				// Mouse click coordinates are outside the object but near a vertical edge
+				let dist = Math.min(Math.abs(mouseX-minX), Math.abs(mouseX-maxX));
+				if (dist < minDist)
+				{
+					minDist = dist;
+					closestPrimitive = primitives[i];
+				}
+			} else {
+				let dist = Math.min(distance(mouseX, mouseY, minX, minY), Math.min(distance(mouseX, mouseY, minX, maxY), Math.min(distance(mouseX, mouseY, maxX, minY), distance(mouseX, mouseY, maxX, maxY))));
+				if (dist < minDist)
+				{
+					minDist = dist;
+					closestPrimitive = primitives[i];
+				}
+			}
+		}
+	}
+
+	return closestPrimitive;
+}
+
+function distance(x1,y1,x2,y2)
+{
+	// Get distance between two points
+	return Math.sqrt((x1-x2)**2 + (y1-y2)**2);
 }
 
 function getBoundingBoxCentroid() 
