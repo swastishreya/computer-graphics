@@ -49,6 +49,7 @@ export default class Cirlce
 
 		this.transform = new Transform(centroidX, centroidY);
     }
+
     draw(shader)
 	{
 		const uModelTransformMatrix = shader.uniform("uModelTransformMatrix");
@@ -70,8 +71,35 @@ export default class Cirlce
 
 		shader.setUniformMatrix4fv(uModelTransformMatrix, this.transform.getMVPMatrix());
 
-        console.log("len ="+this.positionAttributesData.length);
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.positionAttributesData.length / elementPerVertex);
+    }
+    
+    getTransformedCornerPositions() 
+	{
+		// Position of top left vertex
+		const currentVertex1 = vec4.fromValues(this.positionAttributesData[0]+this.radius,this.positionAttributesData[1],this.positionAttributesData[2],1);
+		const updatedVertex1 = vec4.create();
+		vec4.transformMat4(updatedVertex1, currentVertex1, this.transform.getMVPMatrix());
+
+		const currentVertex2 = vec4.fromValues(this.positionAttributesData[0]-this.radius,this.positionAttributesData[1],this.positionAttributesData[2],1);
+		const updatedVertex2 = vec4.create();
+		vec4.transformMat4(updatedVertex2, currentVertex2, this.transform.getMVPMatrix());
+
+		const currentVertex3 = vec4.fromValues(this.positionAttributesData[0],this.positionAttributesData[1]+this.radius,this.positionAttributesData[2],1);
+		const updatedVertex3 = vec4.create();
+		vec4.transformMat4(updatedVertex3, currentVertex3, this.transform.getMVPMatrix());
+
+		const currentVertex4 = vec4.fromValues(this.positionAttributesData[0],this.positionAttributesData[1]-this.radius,this.positionAttributesData[2],1);
+		const updatedVertex4 = vec4.create();
+		vec4.transformMat4(updatedVertex4, currentVertex4, this.transform.getMVPMatrix());
+
+		const updatedVertex = new Float32Array([updatedVertex1[0],updatedVertex1[1],
+												updatedVertex2[0],updatedVertex2[1],
+												updatedVertex3[0],updatedVertex3[1],
+												updatedVertex4[0],updatedVertex4[1],
+											]);
+
+		return updatedVertex;
 	}
     
 }

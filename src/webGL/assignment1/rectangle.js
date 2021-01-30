@@ -74,25 +74,31 @@ export default class Rectangle
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.positionAttributesData.length / elementPerVertex);
 	}
 
-	recomputeVertexAttributesData()
+	getTransformedCornerPositions() 
 	{
-		this.positionAttributesData = new Float32Array([
-			//  x , y,  z
-			this.centroidX + this.width/2, this.centroidY + this.height/2, 0.0,
-			this.centroidX + this.width/2, this.centroidY - this.height/2, 0.0,
-			this.centroidX - this.width/2, this.centroidY + this.height/2, 0.0,
-			this.centroidX - this.width/2, this.centroidY - this.height/2, 0.0,
-		]);
-		console.log("success!!!!!");
-	}
+		// Position of top right vertex
+		const currentVertex1 = vec4.fromValues(this.positionAttributesData[0],this.positionAttributesData[1],this.positionAttributesData[2],1);
+		const updatedVertex1 = vec4.create();
+		vec4.transformMat4(updatedVertex1, currentVertex1, this.transform.getMVPMatrix());
 
-	getTransformedVertexPositions() 
-	{
-		// Position of top left vertex
-		const currentVertex = vec4.fromValues(this.positionAttributesData[0],this.positionAttributesData[1],this.positionAttributesData[2],1);
-		const updatedVertex = vec4.create();
-		vec4.transformMat4(updatedVertex, currentVertex, this.transform.getMVPMatrix());
-		console.log(updatedVertex);
+		const currentVertex2 = vec4.fromValues(this.positionAttributesData[3],this.positionAttributesData[4],this.positionAttributesData[5],1);
+		const updatedVertex2 = vec4.create();
+		vec4.transformMat4(updatedVertex2, currentVertex2, this.transform.getMVPMatrix());
+
+		const currentVertex3 = vec4.fromValues(this.positionAttributesData[6],this.positionAttributesData[7],this.positionAttributesData[8],1);
+		const updatedVertex3 = vec4.create();
+		vec4.transformMat4(updatedVertex3, currentVertex3, this.transform.getMVPMatrix());
+
+		const currentVertex4 = vec4.fromValues(this.positionAttributesData[9],this.positionAttributesData[10],this.positionAttributesData[11],1);
+		const updatedVertex4 = vec4.create();
+		vec4.transformMat4(updatedVertex4, currentVertex4, this.transform.getMVPMatrix());
+
+		const updatedVertex = new Float32Array([updatedVertex1[0],updatedVertex1[1],
+												updatedVertex2[0],updatedVertex2[1],
+												updatedVertex3[0],updatedVertex3[1],
+												updatedVertex4[0],updatedVertex4[1],
+											]);
+
 		return updatedVertex;
 	}
 

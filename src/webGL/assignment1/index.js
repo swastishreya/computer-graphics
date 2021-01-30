@@ -1,5 +1,3 @@
-import { vec3 } from 'https://cdn.skypack.dev/gl-matrix';
-
 import Shader from './shader.js';
 import vertexShaderSrc from './vertex.js';
 import fragmentShaderSrc from './fragment.js';
@@ -36,7 +34,6 @@ window.onload = () =>
 				primitives.push(new Rectangle(gl, clipCoordinates[0], clipCoordinates[1], new Float32Array([1.0, 0.0, 1.0]), true));
 			} else if (shapeMode === 'c') 
 			{
-				console.log("shape mode = "+shapeMode);
 				primitives.push(new Circle(gl, clipCoordinates[0], clipCoordinates[1]));
 			}
 		} else if (modeValue === 1)
@@ -92,12 +89,10 @@ window.onload = () =>
 					}
 				} else if (modeValue === 2)
 				{
-					let centroid = getBoundingBoxCentroid(primitives);
-					console.log("Centroid:");
-					console.log(centroid[0]);
-					console.log(centroid[1]);
-					vec3.set(rotationAxis, centroid[0], centroid[1], 1);
 					rotationAngle -= 0.01;
+					primitives.forEach( primitive => {
+						primitive.transform.setRotate(centroid, rotationAxis, rotationAngle);
+					})
 				}
 				break;
 			case 'ArrowRight':
@@ -109,12 +104,10 @@ window.onload = () =>
 					}
 				} else if (modeValue === 2)
 				{
-					let centroid = getBoundingBoxCentroid(primitives);
-					console.log("Centroid:");
-					console.log(centroid[0]);
-					console.log(centroid[1]);
-					vec3.set(rotationAxis, centroid[0], centroid[1], 1);
 					rotationAngle += 0.01;
+					primitives.forEach( primitive => {
+						primitive.transform.setRotate(centroid, rotationAxis, rotationAngle);
+					})
 				}
 				break;
 			case '+':
@@ -164,15 +157,14 @@ window.onload = () =>
 				modeValue = (modeValue + 1) % 3;
 				if (modeValue === 0)
 				{
-					let centroid = getBoundingBoxCentroid(primitives);
-					console.log("Centroid:");
-					console.log(centroid[0]);
-					console.log(centroid[1]);
-					vec3.set(rotationAxis, centroid[0], centroid[1], 1);
-					rotationAngle = 0.0;	
+					rotationAngle = 0.0;
+					primitives.forEach( primitive => {
+						primitive.transform.setRotate(centroid, rotationAxis, rotationAngle);
+					})	
 				} else if (modeValue === 2)
 				{
 					closest = null;
+					centroid = getBoundingBoxCentroid();
 				}
 				break;
 		}
@@ -186,7 +178,8 @@ var primitives = [];
 let closest = null;
 
 let rotationAngle = 0;
-let rotationAxis = vec3.create();
+const rotationAxis = new Float32Array([0.0, 0.0, 1.0]);
+var centroid = [];
 
 const moveRight = new Float32Array([0.1, 0.0, 0.0]);
 const moveLeft = new Float32Array([-0.1, 0.0, 0.0]);
@@ -206,29 +199,11 @@ function animate()
 	renderer.clear();
 
 	primitives.forEach( primitive => {
-		primitive.transform.setRotate(rotationAxis, rotationAngle);
 		primitive.transform.updateMVPMatrix();
-	})
-
-	primitives.forEach( primitive => {
 		primitive.draw(shader);
 	})
 
 	window.requestAnimationFrame(animate);
-}
-
-function getCentroid() 
-{
-	let centroidX = 0;
-	let centroidY = 0;
-	let count = 0;
-	primitives.forEach( primitive => {
-		centroidX += primitive.centroidX;
-		centroidY += primitive.centroidY;
-		count += 1;
-	})
-
-	return [centroidX/count, centroidY/count]
 }
 
 function getBoundingBoxCentroid() 
@@ -239,16 +214,17 @@ function getBoundingBoxCentroid()
 	let maxY = -1.0;
 
 	primitives.forEach( primitive => {
-		minX = Math.min(minX, primitive.centroidX - primitive.width/2);
-		maxX = Math.max(maxX, primitive.centroidX + primitive.width/2);
-		minY = Math.min(minY, primitive.centroidY - primitive.height/2);
-		maxY = Math.max(maxY, primitive.centroidY + primitive.height/2);
+		let cornerVertexPositions = primitive.getTransformedCornerPositions();
+		minX = Math.min(minX, Math.min(cornerVertexPositions[0], Math.min(cornerVertexPositions[2],Math.min(cornerVertexPositions[4], cornerVertexPositions[6]))));
+		maxX = Math.max(maxX, Math.max(cornerVertexPositions[0], Math.max(cornerVertexPositions[2],Math.max(cornerVertexPositions[4], cornerVertexPositions[6]))));
+		minY = Math.min(minY, Math.min(cornerVertexPositions[1], Math.min(cornerVertexPositions[3],Math.min(cornerVertexPositions[5], cornerVertexPositions[7]))));
+		maxY = Math.max(maxY, Math.max(cornerVertexPositions[1], Math.max(cornerVertexPositions[3],Math.max(cornerVertexPositions[5], cornerVertexPositions[7]))));
 	})
 
 	let centroidX = (minX + maxX)/2;
 	let centroidY = (minY + maxY)/2;
 
-	return [centroidX, centroidY]
+	return [centroidX, centroidY];
 }
 
 animate();

@@ -8,7 +8,9 @@ export default class Transform
 		this.moveOrigin = vec3.fromValues(-centroidX,-centroidY,0)
 		this.scale = vec3.fromValues( 1, 1, 1);
 		this.rotationAngle = 0;
-		this.rotationAxis = vec3.fromValues( centroidX, centroidY, 1);
+		this.rotationAxis = vec3.fromValues( 0, 0, 1);
+		this.rotationAboutPoint = vec3.create();
+		this.rotationResetPoint = vec3.create();
 
 		this.modelTransformMatrix = mat4.create();
 		mat4.identity(this.modelTransformMatrix);
@@ -24,7 +26,9 @@ export default class Transform
 	updateMVPMatrix()
 	{
 		mat4.identity(this.modelTransformMatrix);
+		mat4.translate(this.modelTransformMatrix, this.modelTransformMatrix, this.rotationResetPoint);
 		mat4.rotate(this.modelTransformMatrix, this.modelTransformMatrix, this.rotationAngle, this.rotationAxis);
+		mat4.translate(this.modelTransformMatrix, this.modelTransformMatrix, this.rotationAboutPoint);
 		mat4.translate(this.modelTransformMatrix, this.modelTransformMatrix, this.translate);
 		mat4.scale(this.modelTransformMatrix, this.modelTransformMatrix, this.scale);
 		mat4.translate(this.modelTransformMatrix, this.modelTransformMatrix,this.moveOrigin);
@@ -33,7 +37,6 @@ export default class Transform
 	setTranslate(translationVec)
 	{
 		vec3.add(this.translate, translationVec, this.translate);
-		// this.translate = translationVec;
 	}
 
 	getTranslate()
@@ -43,12 +46,7 @@ export default class Transform
 
 	setScale(scalingVec)
 	{
-		console.log("Scale before:" + this.scale);
-		console.log("Translate before:" + this.translate);
 		vec3.add(this.scale, scalingVec, this.scale);
-		// this.scale = scalingVec;
-		console.log("Scale after:" + this.scale);
-		console.log("Translate after:" + this.translate);
 	}
 
 	getScale()
@@ -56,11 +54,12 @@ export default class Transform
 		return this.scale;
 	}
 
-	setRotate(rotationAxis, rotationAngle)
+	setRotate(rotationAboutPoint, rotationAxis, rotationAngle)
 	{
 		this.rotationAngle = rotationAngle;
-		vec3.add(this.rotationAxis, rotationAxis, this.rotationAxis);
-		// this.rotationAxis = rotationAxis;
+		this.rotationAxis = rotationAxis;
+		vec3.set(this.rotationAboutPoint, -rotationAboutPoint[0], -rotationAboutPoint[1], 0);
+		vec3.set(this.rotationResetPoint, rotationAboutPoint[0], rotationAboutPoint[1], 0);
 	}
 
 	getRotate()
