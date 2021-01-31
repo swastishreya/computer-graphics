@@ -157,6 +157,10 @@ window.onload = () =>
 					centroid = getBoundingBoxCentroid();
 				}
 				break;
+			case 'Escape':
+				console.log("pressed escape!!");
+				window.location.replace("http://0.0.0.0:8000/");
+				break;
 		}
 	},
 		true
@@ -215,8 +219,12 @@ function getClosestPrimitive(mouseX, mouseY)
 		{
 			let x = (minX + maxX) / 2;
 			let y = (minY + maxY) / 2;
-			let dist = distance(mouseX, mouseY, x, y) - primitives[i].radius;
-			if (dist < minDist)
+			let dist = distance(mouseX, mouseY, x, y) - Math.abs(x - minX);
+			if (dist < 0)
+			{
+				// Mouse click coordinates are inside the object
+				return primitives[i];
+			} else if (dist < minDist)
 			{
 				minDist = dist;
 				closestPrimitive = primitives[i];
