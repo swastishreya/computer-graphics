@@ -5,8 +5,8 @@ export default class Mesh
 	constructor(gl, vertices, indices, id=0, color='r')
 	{
         this.id = id;
-        this.vertexData = vertices;        
-        this.vertexIndices = indices;
+        this.vertexData = new Float32Array(vertices);        
+        this.vertexIndices = new Uint16Array(indices);
      
         this.faceColors = [];
         this.colorData = [];

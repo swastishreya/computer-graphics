@@ -6,9 +6,9 @@ import fragmentShaderSrc from './fragment.js';
 import Renderer from './renderer.js';
 import Cube from './cube.js';
 import Mesh from './mesh.js';
-import Parser from './parser.js';
-
-async function main () {
+import webglObjLoader from 'https://cdn.skypack.dev/webgl-obj-loader';
+import axis from './models/axis.js';
+import cube from './models/cube.js';
 
 const renderer = new Renderer();
 const gl = renderer.webGlContext();
@@ -18,11 +18,7 @@ shader.use();
 
 const gui = new dat.GUI();
 
-const response = await fetch('./models/cube.obj');  
-const text = await response.text();
-const data = new Parser(text);
-
-console.log(data);
+const data  = new webglObjLoader.Mesh(cube);
 
 console.log(data.vertices);
 console.log(data.indices);
@@ -31,19 +27,21 @@ const cube1 = new Mesh(gl, data.vertices, data.indices, 1);
 const cube2 = new Mesh(gl, data.vertices, data.indices, 2);
 const cube3 = new Mesh(gl, data.vertices, data.indices, 3);
 
-const response2 = await fetch('./models/axis.obj');  
-const text2 = await response2.text();
-const data2 = new Parser(text2);
+const data2  = new webglObjLoader.Mesh(axis);
 
-const object1 = new Mesh(gl, data2.vertices, data2.indices, 0, 'g');
-const object2 = new Mesh(gl, data2.vertices, data2.indices, 0, 'r');
-object2.transform.setRotate(-90, 'Z');
-const object3 = new Mesh(gl, data2.vertices, data2.indices, 0, 'b');
-object3.transform.setRotate(90, 'X');
+const axis1 = new Mesh(gl, data2.vertices, data2.indices, 0, 'g');
+axis1.transform.setUniformScale(0.5);
+const axis2 = new Mesh(gl, data2.vertices, data2.indices, 0, 'r');
+axis2.transform.setRotate(-90, 'Z');
+axis2.transform.setUniformScale(0.5);
+const axis3 = new Mesh(gl, data2.vertices, data2.indices, 0, 'b');
+axis3.transform.setRotate(90, 'X');
+axis3.transform.setUniformScale(0.5);
 
 var mouseDown = false;
 var angle = 0;
 var selected = null;
+let prevX =0;
 
 // const cube1 = new Cube(gl,1);
 // const cube2 = new Cube(gl,2);
@@ -87,33 +85,33 @@ gui.add(transformSettings,'mode', ['Camera', 'Selection']).name('Mode').listen()
 	if (m === 'Camera'){
 		transformSettings.mode = 'Camera';		
 	} else if (m === 'Selection'){
+		console.log("Selection mode")
 		transformSettings.mode = 'Selection';
 	} 
 });
 
 gui.addColor(transformSettings, 'color').name('Color').listen().onChange(function(newColor) {
-		console.log("Changed color to:" + newColor);
 		transformSettings.color = newColor;
 });
 
 window.onload = () =>
 {
-	renderer.getCanvas().addEventListener('mousemove', (event) =>
-	{
-		let mouseX = event.clientX;
-		let mouseY = event.clientY;
-		const clipCoordinates = renderer.mouseToClipCoord(mouseX, mouseY);
+	// renderer.getCanvas().addEventListener('mousemove', (event) =>
+	// {
+	// 	let mouseX = event.clientX;
+	// 	let mouseY = event.clientY;
+	// 	const clipCoordinates = renderer.mouseToClipCoord(mouseX, mouseY);
 
-		if (transformSettings.mode === 'Camera' && mouseDown === true){
-			angle = Math.atan(clipCoordinates[0]/5);
-		}
-	});
+	// 	if (transformSettings.mode === 'Camera' && mouseDown === true){
+	// 		angle = Math.atan(clipCoordinates[0]/5);
+	// 	}
+	// });
 
-	renderer.getCanvas().addEventListener("mousedown", function(event) {
+	renderer.getCanvas().addEventListener('mousedown', function(event) {
 		mouseDown = true;
 	}, false);
 
-	renderer.getCanvas().addEventListener("mouseup", function(event) {
+	renderer.getCanvas().addEventListener('mouseup', function(event) {
 		mouseDown = false;
 	}, false);
 
@@ -136,47 +134,40 @@ window.onload = () =>
 				let faceId = pixels[3]%10;
 				let objectId = parseInt((pixels[3] - faceId)/80);
 				if (objectId === 1) {
-					if (transformSettings.selectionMode === 'Face'){
-						console.log(cube1);
-						cube1.setFaceColor(faceId - 1, [transformSettings.color[0]/255.0, transformSettings.color[1]/255.0, transformSettings.color[2]/255.0, cube1.faceColors[faceId-1][3]]);
-					} else if (transformSettings.selectionMode === 'Object'){
-						console.log("hellooo");
-						for (var j = 0; j < cube1.faceColors.length; ++j) {
-							cube1.setFaceColor(j, [transformSettings.color[0]/255.0, transformSettings.color[1]/255.0, transformSettings.color[2]/255.0, cube1.faceColors[j][3]]);
-						}
-					}
-					cube1.recomputeColorData();
+					selected = cube1;
 				} else if (objectId === 2) {
-					if (transformSettings.selectionMode === 'Face'){
-						console.log(cube2);
-						cube2.faceColors[faceId-1] = [transformSettings.color[0]/255.0, transformSettings.color[1]/255.0, transformSettings.color[2]/255.0, cube2.faceColors[faceId-1][3]];
-					} else if (transformSettings.selectionMode === 'Object'){
-						console.log("hellooo");
-						for (var j = 0; j < cube2.faceColors.length; ++j) {
-							cube2.faceColors[j] = [transformSettings.color[0]/255.0, transformSettings.color[1]/255.0, transformSettings.color[2]/255.0, cube2.faceColors[j][3]];
-						}
-					}
-					cube2.recomputeColorData();
+					selected = cube2;
 				} else if (objectId === 3) {
-					if (transformSettings.selectionMode === 'Face'){
-						console.log(cube3);
-						cube3.faceColors[faceId-1] = [transformSettings.color[0]/255.0, transformSettings.color[1]/255.0, transformSettings.color[2]/255.0, cube3.faceColors[faceId-1][3]];
-					} else if (transformSettings.selectionMode === 'Object'){
-						console.log("hellooo");
-						for (var j = 0; j < cube3.faceColors.length; ++j) {
-							cube3.faceColors[j] = [transformSettings.color[0]/255.0, transformSettings.color[1]/255.0, transformSettings.color[2]/255.0, cube3.faceColors[j][3]];
-						}
-					}
-					cube3.recomputeColorData();
+					selected = cube3;
 				}
+				if (transformSettings.selectionMode === 'Face'){
+					console.log(selected);
+					selected.setFaceColor(faceId - 1, [transformSettings.color[0]/255.0, transformSettings.color[1]/255.0, transformSettings.color[2]/255.0, selected.faceColors[faceId-1][3]]);
+				} else if (transformSettings.selectionMode === 'Object'){
+					console.log("hellooo");
+					for (var j = 0; j < selected.faceColors.length; ++j) {
+						selected.setFaceColor(j, [transformSettings.color[0]/255.0, transformSettings.color[1]/255.0, transformSettings.color[2]/255.0, selected.faceColors[j][3]]);
+					}
+				}
+				selected.recomputeColorData();
 			}
 			console.log(pixels);
 		}
 	});
 
+	renderer.getCanvas().addEventListener('mousemove', event => {
+
+		if(mouseDown && transformSettings.mode === 'Camera'){
+		    var mouseX = event.clientX;
+			var factor = 10;
+			var dx = factor * (mouseX - prevX);
+			angle = angle + dx;
+		  prevX = mouseX;
+	  }
+	  });
+
 
 }
-
 transformSettings.rotate = function() {
 	cube1.transform.setRotate(90, 'Z');
     cube2.transform.setRotate(90, 'Y');
@@ -197,23 +188,35 @@ gui.add(transformSettings,'scale').name('Scale');
 function animate()
 {
 	if (mouseDown){
-		cube1.transform.setLookAt(angle);
-		cube2.transform.setLookAt(angle);
-		cube3.transform.setLookAt(angle);
+		cube1.transform.setRotate(angle, 'Y');
+		cube2.transform.setRotate(angle, 'Y');
+		cube3.transform.setRotate(angle, 'Y');
+
+		axis1.transform.setRotate(angle, 'Y');
+		axis2.transform.setRotate(angle, 'Y');
+		axis3.transform.setRotate(angle, 'Y');
+
+		// cube1.transform.setLookAt(angle);
+		// cube2.transform.setLookAt(angle);
+		// cube3.transform.setLookAt(angle);
+
+		// axis1.transform.setLookAt(angle);
+		// axis2.transform.setLookAt(angle);
+		// axis3.transform.setLookAt(angle);
 	}
 
 	cube1.transform.updateMVPMatrix();
 	cube2.transform.updateMVPMatrix();
 	cube3.transform.updateMVPMatrix();
 
-	object1.transform.updateMVPMatrix();
-	object2.transform.updateMVPMatrix();
-	object3.transform.updateMVPMatrix();
+	axis1.transform.updateMVPMatrix();
+	axis2.transform.updateMVPMatrix();
+	axis3.transform.updateMVPMatrix();
 
 	renderer.clear();
-	object1.draw(shader);
-	object2.draw(shader);
-	object3.draw(shader);
+	axis1.draw(shader);
+	axis2.draw(shader);
+	axis3.draw(shader);
 	cube1.draw(shader);
 	cube2.draw(shader);
 	cube3.draw(shader);
@@ -222,7 +225,3 @@ function animate()
 
 animate();
 shader.delete();
-
-}
-
-main();

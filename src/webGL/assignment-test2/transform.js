@@ -18,10 +18,10 @@ export default class Transform
 		this.rotationAngleZ = 0;
 		this.rotationAxisZ = vec3.fromValues( 0, 0, 1);
 		this.fieldOfView = degToRad(60);
-        this.aspect = gl.canvas.width / gl.canvas.height;
+		this.aspect = gl.canvas.width / gl.canvas.height;
 		this.up = vec3.fromValues( 0, 1, 0);
 		this.center = vec3.fromValues( 0, 0, -5);
-		this.eye = vec3.fromValues( 0, 0, 1);
+		this.eye = vec3.fromValues( 0, 0, 0.1);
 		this.eyeAngle = 0;
 
 		this.modelTransformMatrix = mat4.create();
@@ -41,8 +41,8 @@ export default class Transform
 	updateMVPMatrix()
 	{
 		mat4.identity(this.modelTransformMatrix);
-		mat4.perspective(this.modelTransformMatrix, this.fieldOfView, this.aspect, 1, 100);
-		// mat4.lookAt(this.modelTransformMatrix, this.eye, this.center, this.up);
+		mat4.lookAt(this.modelTransformMatrix, this.eye, this.center, this.up);
+		mat4.perspective(this.modelTransformMatrix, this.fieldOfView, this.aspect, 0.1, 100);
 		mat4.translate(this.modelTransformMatrix, this.modelTransformMatrix, this.translate);
 		mat4.rotate(this.modelTransformMatrix, this.modelTransformMatrix, this.rotationAngleX, this.rotationAxisX);
 		mat4.rotate(this.modelTransformMatrix, this.modelTransformMatrix, this.rotationAngleY, this.rotationAxisY);
