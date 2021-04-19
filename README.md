@@ -11,7 +11,13 @@ The reports present in the ./src/webGL/reports folder provides a detailed descri
 <ul>
 <li>
 The application screen for assignment 1 is as follows:
-![](./images/A1/a1.png)
+ 
+![Application window 1](./images/A1/a1.png)
+</li>
+
+The application screen for assignment 3 is as follows:
+ 
+![Application window 2](./images/A3/a1.png)
 </li>
 
 <li>
